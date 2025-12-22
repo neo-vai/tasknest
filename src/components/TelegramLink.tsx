@@ -12,6 +12,7 @@ export function TelegramLink() {
   const [linked, setLinked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [unlinking, setUnlinking] = useState(false);
 
   useEffect(() => {
     if (!session?.user) return;
@@ -63,6 +64,26 @@ export function TelegramLink() {
     }
   };
 
+  const handleUnlink = async () => {
+    setUnlinking(true);
+    setError("");
+    try {
+      const res = await fetch("/api/user/telegram", { method: "DELETE" });
+      if (res.ok) {
+        setLinked(false);
+        setCode(null);
+        setExpiresAt(null);
+      } else {
+        const data = await res.json().catch(() => ({ error: "Failed to unlink" }));
+        setError(data.error || "Failed to unlink");
+      }
+    } catch {
+      setError("Network error");
+    } finally {
+      setUnlinking(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -75,7 +96,7 @@ export function TelegramLink() {
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading...</p>
         ) : linked ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <p className="text-sm font-medium text-green-600 dark:text-green-400">
               Your Telegram account is already linked.
             </p>
@@ -83,6 +104,14 @@ export function TelegramLink() {
               You will receive notifications through the bot{" "}
               {process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "TaskNestBot"}.
             </p>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleUnlink}
+              disabled={unlinking}
+            >
+              {unlinking ? "Unlinking..." : "Unlink Telegram"}
+            </Button>
           </div>
         ) : code ? (
           <div className="space-y-2">
