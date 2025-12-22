@@ -32,20 +32,20 @@ async function sendTelegramMessage(chatId: string, text: string) {
   }
 }
 
-function getTelegramMessage(type: string, data: Record<string, unknown>): string {
+function getBaseMessage(type: string, data: Record<string, unknown>): string {
   const taskTitle = data.taskTitle ? `"${String(data.taskTitle)}"` : "a task";
   const projectName = data.projectName ? `"${String(data.projectName)}"` : "a project";
   switch (type) {
     case "ADDED_TO_PROJECT":
-      return "You have been added to a project.";
+      return "you have been added to a project.";
     case "REMOVED_FROM_PROJECT":
-      return "You have been removed from a project.";
+      return "you have been removed from a project.";
     case "ROLE_CHANGED":
-      return `Your role was changed to ${data.role ?? "unknown"}.`;
+      return `your role was changed to ${data.role ?? "unknown"}.`;
     case "TASK_ASSIGNED":
-      return `You have been assigned to ${taskTitle}.`;
+      return `you have been assigned to ${taskTitle}.`;
     case "TASK_UNASSIGNED":
-      return `You have been unassigned from ${taskTitle}.`;
+      return `you have been unassigned from ${taskTitle}.`;
     case "TASK_COMPLETED":
       return `${taskTitle} has been marked as completed.`;
     case "TASK_REOPENED":
@@ -55,7 +55,7 @@ function getTelegramMessage(type: string, data: Record<string, unknown>): string
     case "PROJECT_DELETED":
       return `${projectName} has been deleted.`;
     default:
-      return "You have a new notification.";
+      return "you have a new notification.";
   }
 }
 
@@ -63,19 +63,23 @@ export class TelegramChannel implements NotificationChannel {
   async send(event: DispatchEvent) {
     const { type, userIds, data } = event;
     const meta = data as Record<string, unknown>;
-    const messageText = getTelegramMessage(type, meta);
+    const baseMessage = getBaseMessage(type, meta);
 
     const users = await prisma.user.findMany({
       where: {
         id: { in: userIds },
         telegramChatId: { not: null },
       },
-      select: { id: true, telegramChatId: true },
+      select: { id: true, telegramChatId: true, name: true, email: true },
     });
 
     const sendPromises = users
       .filter((u) => u.telegramChatId)
-      .map((u) => sendTelegramMessage(u.telegramChatId!, messageText));
+      .map((u) => {
+        const displayName = u.name || u.email || "User";
+        const text = `${displayName}, ${baseMessage}`;
+        return sendTelegramMessage(u.telegramChatId!, text);
+      });
 
     await Promise.allSettled(sendPromises);
   }
