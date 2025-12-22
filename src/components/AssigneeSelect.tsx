@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -15,23 +15,50 @@ interface AssigneeSelectProps {
   value: string | null
   onChange: (assigneeId: string | null) => void
   disabled?: boolean
+  members?: MemberOption[]
+  loading?: boolean
 }
 
-export function AssigneeSelect({ projectId, value, onChange, disabled }: AssigneeSelectProps) {
-  const [members, setMembers] = useState<MemberOption[]>([])
-  const [loading, setLoading] = useState(true)
+export function AssigneeSelect({
+  projectId,
+  value,
+  onChange,
+  disabled,
+  members: externalMembers,
+  loading: externalLoading,
+}: AssigneeSelectProps) {
+  const [internalMembers, setInternalMembers] = useState<MemberOption[]>([])
+  const [internalLoading, setInternalLoading] = useState(!externalMembers)
 
   useEffect(() => {
+    if (externalMembers !== undefined) {
+      setInternalMembers(externalMembers)
+      setInternalLoading(false)
+      return
+    }
+
+    let cancelled = false
+    setInternalLoading(true)
     fetch(`/api/projects/${projectId}/members`)
       .then((res) => res.json())
       .then((data: MemberOption[]) => {
-        setMembers(data)
-        setLoading(false)
+        if (!cancelled) {
+          setInternalMembers(data)
+          setInternalLoading(false)
+        }
       })
-      .catch(() => setLoading(false))
-  }, [projectId])
+      .catch(() => {
+        if (!cancelled) setInternalLoading(false)
+      })
 
-  if (loading) {
+    return () => {
+      cancelled = true
+    }
+  }, [projectId, externalMembers])
+
+  const isLoading = externalMembers !== undefined ? externalLoading : internalLoading
+
+  if (isLoading) {
     return <Skeleton className="h-8 w-full" />
   }
 
@@ -46,7 +73,7 @@ export function AssigneeSelect({ projectId, value, onChange, disabled }: Assigne
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="unassigned">Unassigned</SelectItem>
-        {members.map((member) => (
+        {internalMembers.map((member) => (
           <SelectItem key={member.id} value={member.id}>
             {member.name || member.email}
           </SelectItem>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCreateTask } from "@/hooks/useTasks";
+import { useProjectMembers } from "@/hooks/useProjects";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ import { AssigneeSelect } from "@/components/AssigneeSelect";
 
 export function NewTaskForm({ projectId }: { projectId: string }) {
   const createTask = useCreateTask();
+  const { data: members, isLoading: membersLoading } = useProjectMembers(projectId);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
@@ -73,6 +75,8 @@ export function NewTaskForm({ projectId }: { projectId: string }) {
               value={assigneeId}
               onChange={setAssigneeId}
               disabled={createTask.isPending}
+              members={members?.map((m) => ({ id: m.id, name: m.name, email: m.email })) ?? []}
+              loading={membersLoading}
             />
           </div>
         </CardContent>
