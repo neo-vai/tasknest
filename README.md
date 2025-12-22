@@ -106,10 +106,11 @@ TELEGRAM_BOT_INTERNAL_HOST="http://bot"
 TELEGRAM_BOT_INTERNAL_PORT="4000"
 ```
 
-### 3. Run with Docker (recommended)
+### 3. Run with Docker
 
 ```bash
-docker compose up -d
+make install
+make docker-up
 ```
 
 This starts:
@@ -121,17 +122,24 @@ This starts:
 
 The app will be available at `http://localhost`.
 
-### 4. Run locally (development)
+### 4. Makefile (optional)
 
-```bash
-npm install
-npx prisma generate
-npx prisma migrate dev
-npm run dev        # starts Next.js dev server
-npm run bot        # starts Telegram bot
-```
+A `Makefile` is provided with common tasks. Run `make help` to see all available commands.
 
-Visit `http://localhost:3000`.
+| Command         | Description                                     |
+|-----------------|-------------------------------------------------|
+| `make install`  | Install npm dependencies                        |
+| `make generate` | Generate Prisma client                          |
+| `make migrate`  | Run database migrations                         |
+| `make dev`      | Start Next.js development server                |
+| `make bot`      | Start Telegram bot                              |
+| `make build`    | Build Next.js for production                    |
+| `make start`    | Start Next.js production server                 |
+| `make docker-build` | Build Docker images                          |
+| `make docker-up`   | Start Docker containers in background        |
+| `make docker-down` | Stop and remove Docker containers            |
+| `make lint`     | Run ESLint                                      |
+| `make clean`    | Remove build artifacts and node_modules         |
 
 ---
 
