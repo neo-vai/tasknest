@@ -10,11 +10,13 @@ import {
 import { SignOutMenuItem } from "@/components/SignOutMenuItem";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { TelegramLinkDialog } from "@/components/TelegramLinkDialog";
+import { SettingsDialog } from "@/components/SettingsDialog";
 import { SearchBar } from "@/components/SearchBar";
-import { RiMessage2Line } from "@remixicon/react";
+import { RiMessage2Line, RiUserSettingsLine } from "@remixicon/react";
 
 export function Topbar() {
   const [telegramOpen, setTelegramOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <header className="flex h-14 items-center gap-4 border-b border-border bg-card px-6">
@@ -25,6 +27,11 @@ export function Topbar() {
       <NotificationsBell />
 
       <SettingsMenu>
+        <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+          <RiUserSettingsLine className="h-4 w-4" />
+          Account Settings
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => setTelegramOpen(true)}>
           <RiMessage2Line className="h-4 w-4" />
           Link Telegram
@@ -35,10 +42,8 @@ export function Topbar() {
         <SignOutMenuItem />
       </SettingsMenu>
 
-      <TelegramLinkDialog
-        open={telegramOpen}
-        onOpenChange={setTelegramOpen}
-      />
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <TelegramLinkDialog open={telegramOpen} onOpenChange={setTelegramOpen} />
     </header>
   );
 }
