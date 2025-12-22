@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,6 +19,13 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { data: session, status } = useSession()
+
+  const isLoading = status === "loading"
+  const user = session?.user
+
+  const displayName = user?.name || user?.email?.split("@")[0] || "User"
+  const avatarLetter = (displayName[0] || "U").toUpperCase()
 
   return (
     <aside className="flex h-full w-60 flex-col border-r border-border bg-card">
@@ -53,11 +61,20 @@ export function Sidebar() {
       <div className="border-t border-border p-3">
         <div className="flex items-center gap-3 rounded-lg px-2 py-1.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs font-medium">
-            U
+            {isLoading ? "..." : avatarLetter}
           </div>
           <div className="flex-1 truncate text-sm">
-            <p className="truncate font-medium">User Name</p>
-            <p className="truncate text-xs text-muted-foreground">user@example.com</p>
+            {isLoading ? (
+              <>
+                <p className="truncate font-medium">...</p>
+                <p className="truncate text-xs text-muted-foreground">...</p>
+              </>
+            ) : (
+              <>
+                <p className="truncate font-medium">{displayName}</p>
+                <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+              </>
+            )}
           </div>
         </div>
       </div>
