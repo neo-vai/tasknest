@@ -1,6 +1,6 @@
 "use client";
 import { signIn, useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,17 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard");
+    }
+  }, [status, router]);
+
   if (status === "loading") {
     return null;
   }
 
   if (status === "authenticated") {
-    router.push("/dashboard");
     return null;
   }
 
@@ -106,7 +111,10 @@ export default function Login() {
               </Button>
               <p className="text-sm text-muted-foreground">
                 Don&apos;t have an account?{" "}
-                <Link href="/register" className="text-primary font-medium hover:underline">
+                <Link
+                  href="/register"
+                  className="text-primary font-medium hover:underline"
+                >
                   Create one
                 </Link>
               </p>
