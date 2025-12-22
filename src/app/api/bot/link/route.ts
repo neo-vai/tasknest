@@ -41,16 +41,7 @@ export async function POST(req: Request) {
   }
 
   const userId = linkCode.userId;
-
   const chatIdStr = String(chatId);
-
-  const existing = await prisma.user.findFirst({
-    where: { telegramChatId: chatIdStr, NOT: { id: userId } },
-  });
-
-  if (existing) {
-    return NextResponse.json({ error: "Telegram account already linked to another user" }, { status: 409 });
-  }
 
   await prisma.user.update({
     where: { id: userId },

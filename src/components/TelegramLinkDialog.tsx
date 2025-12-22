@@ -21,16 +21,47 @@ export function TelegramLinkDialog({
 }) {
   const { data: session } = useSession();
   const [code, setCode] = useState<string | null>(null);
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [linked, setLinked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (!open) {
       setCode(null);
+      setExpiresAt(null);
+      setLinked(false);
       setError("");
       setLoading(false);
+      return;
     }
-  }, [open]);
+    const fetchCode = async () => {
+      if (!session?.user) return;
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch("/api/user/telegram-link-code");
+        const data = await res.json();
+        if (res.ok) {
+          setLinked(data.linked === true);
+          if (data.code) {
+            setCode(data.code);
+            setExpiresAt(data.expiresAt);
+          } else {
+            setCode(null);
+            setExpiresAt(null);
+          }
+        } else {
+          setError(data.error || "Failed to load");
+        }
+      } catch {
+        setError("Network error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCode();
+  }, [open, session?.user]);
 
   const generateCode = async () => {
     if (!session?.user) return;
@@ -43,6 +74,8 @@ export function TelegramLinkDialog({
       const data = await res.json();
       if (res.ok) {
         setCode(data.code);
+        setExpiresAt(data.expiresAt);
+        setLinked(false);
       } else {
         setError(data.error || "Failed to generate code");
       }
@@ -67,7 +100,18 @@ export function TelegramLinkDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          {code ? (
+          {loading ? (
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          ) : linked ? (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                Your Telegram account is already linked.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                You will receive notifications through the bot {botUsername}.
+              </p>
+            </div>
+          ) : code ? (
             <>
               <p className="text-sm">
                 Your linking code:{" "}
