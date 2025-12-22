@@ -10,6 +10,7 @@ import {
   RiFolderLine,
   RiTaskLine,
 } from "@remixicon/react"
+import { useUserProfile } from "@/hooks/useUser"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: RiDashboardLine },
@@ -20,12 +21,20 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
+  const { data: profile, isLoading: isProfileLoading } = useUserProfile()
 
-  const isLoading = status === "loading"
+  const isAuthLoading = status === "loading"
   const user = session?.user
 
-  const displayName = user?.name || user?.email?.split("@")[0] || "User"
+  const displayName =
+    profile?.name ||
+    user?.name ||
+    user?.email?.split("@")[0] ||
+    "User"
+  const displayEmail = profile?.email || user?.email || ""
   const avatarLetter = (displayName[0] || "U").toUpperCase()
+  const isLoading =
+    isAuthLoading || (isProfileLoading && !profile)
 
   return (
     <aside className="flex h-full w-60 flex-col border-r border-border bg-card">
@@ -38,7 +47,9 @@ export function Sidebar() {
 
       <nav className="flex-1 space-y-1 p-3">
         {navigation.map(({ name, href, icon: Icon }) => {
-          const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href))
+          const active =
+            pathname === href ||
+            (href !== "/dashboard" && pathname.startsWith(href))
           return (
             <Link key={name} href={href} className="block">
               <Button
@@ -67,12 +78,16 @@ export function Sidebar() {
             {isLoading ? (
               <>
                 <p className="truncate font-medium">...</p>
-                <p className="truncate text-xs text-muted-foreground">...</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  ...
+                </p>
               </>
             ) : (
               <>
                 <p className="truncate font-medium">{displayName}</p>
-                <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {displayEmail}
+                </p>
               </>
             )}
           </div>
