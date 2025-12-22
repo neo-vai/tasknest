@@ -48,13 +48,16 @@ services:
     networks:
       - app
 
-  nginx:
-    image: nginx:1.29.8-alpine
+  caddy:
+    image: caddy:2-alpine
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
+      - "443:443/udp"
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
     depends_on:
       - nextjs
     networks:
@@ -62,6 +65,7 @@ services:
 
 volumes:
   db_data:
+  caddy_data:
 
 networks:
   app:

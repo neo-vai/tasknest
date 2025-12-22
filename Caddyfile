@@ -1,0 +1,7 @@
+localhost {
+    reverse_proxy nextjs:3000
+}
+
+# example.com {
+#     reverse_proxy nextjs:3000
+# }
