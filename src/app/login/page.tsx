@@ -1,44 +1,57 @@
-"use client"
-import { signIn, useSession } from "next-auth/react"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+"use client";
+import { signIn, useSession } from "next-auth/react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 
 export default function Login() {
-  const router = useRouter()
-  const { data: session, status } = useSession()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const { status } = useSession();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/dashboard")
-    }
-  }, [status, router])
+  if (status === "loading") {
+    return null;
+  }
+
+  if (status === "authenticated") {
+    router.push("/dashboard");
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    })
-    setLoading(false)
-    if (res?.ok) router.push("/dashboard")
-    else setError("Invalid email or password")
-  }
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-  if (status === "loading" || status === "authenticated") {
-    return null
-  }
+    try {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (res?.ok && !res.error) {
+        router.push("/dashboard");
+      } else {
+        const message =
+          res?.error === "CredentialsSignin"
+            ? "Invalid email or password"
+            : res?.error || "Authentication failed";
+        setError(message);
+      }
+    } catch {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
@@ -102,5 +115,5 @@ export default function Login() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

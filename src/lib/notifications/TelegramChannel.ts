@@ -1,0 +1,79 @@
+import type { NotificationChannel } from "./NotificationChannel";
+import type { DispatchEvent } from "./types";
+import { prisma } from "@/lib/prisma";
+
+const INTERNAL_HOST =
+  process.env.TELEGRAM_BOT_INTERNAL_HOST || "http://127.0.0.1";
+const INTERNAL_PORT =
+  process.env.TELEGRAM_BOT_INTERNAL_PORT || "4000";
+const SECRET = process.env.TELEGRAM_LINK_SECRET || "";
+
+async function sendTelegramMessage(chatId: string, text: string) {
+  if (!SECRET) {
+    console.error("TELEGRAM_LINK_SECRET not set, cannot send Telegram notification");
+    return;
+  }
+  try {
+    const url = `${INTERNAL_HOST}:${INTERNAL_PORT}/send`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SECRET}`,
+      },
+      body: JSON.stringify({ chatId: Number(chatId), text }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      console.error("Telegram proxy send failed", response.status, err);
+    }
+  } catch (error) {
+    console.error("Failed to send Telegram notification:", error);
+  }
+}
+
+function getTelegramMessage(type: string, data: Record<string, unknown>): string {
+  const taskTitle = data.taskTitle ? `"${String(data.taskTitle)}"` : "a task";
+  switch (type) {
+    case "ADDED_TO_PROJECT":
+      return "You have been added to a project.";
+    case "REMOVED_FROM_PROJECT":
+      return "You have been removed from a project.";
+    case "ROLE_CHANGED":
+      return `Your role was changed to ${data.role ?? "unknown"}.`;
+    case "TASK_ASSIGNED":
+      return `You have been assigned to ${taskTitle}.`;
+    case "TASK_UNASSIGNED":
+      return `You have been unassigned from ${taskTitle}.`;
+    case "TASK_COMPLETED":
+      return `${taskTitle} has been marked as completed.`;
+    case "TASK_REOPENED":
+      return `${taskTitle} has been reopened.`;
+    case "TASK_DELETED":
+      return `${taskTitle} has been deleted.`;
+    default:
+      return "You have a new notification.";
+  }
+}
+
+export class TelegramChannel implements NotificationChannel {
+  async send(event: DispatchEvent) {
+    const { type, userIds, data } = event;
+    const meta = data as Record<string, unknown>;
+    const messageText = getTelegramMessage(type, meta);
+
+    const users = await prisma.user.findMany({
+      where: {
+        id: { in: userIds },
+        telegramChatId: { not: null },
+      },
+      select: { id: true, telegramChatId: true },
+    });
+
+    const sendPromises = users
+      .filter((u) => u.telegramChatId)
+      .map((u) => sendTelegramMessage(u.telegramChatId!, messageText));
+
+    await Promise.allSettled(sendPromises);
+  }
+}

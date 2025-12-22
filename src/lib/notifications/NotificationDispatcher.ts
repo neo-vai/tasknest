@@ -1,9 +1,10 @@
 import type { DispatchEvent } from "./types";
 import { InAppChannel } from "./InAppChannel";
+import { TelegramChannel } from "./TelegramChannel";
 import { NotificationService } from "./NotificationService";
 import type { NotificationChannel } from "./NotificationChannel";
 
-const channels: NotificationChannel[] = [new InAppChannel()];
+const channels: NotificationChannel[] = [new InAppChannel(), new TelegramChannel()];
 
 export async function dispatch(event: DispatchEvent) {
   const { userIds } = event;
@@ -20,5 +21,5 @@ export async function dispatch(event: DispatchEvent) {
   };
 
   const promises = channels.map((channel) => channel.send(filteredEvent));
-  await Promise.all(promises);
+  await Promise.allSettled(promises);
 }
