@@ -222,8 +222,8 @@ const server = createServer(async (req, res) => {
   res.end(JSON.stringify({ error: "Not found" }));
 });
 
-server.listen(INTERNAL_PORT, "127.0.0.1", () => {
-  console.log(`Internal send API listening on 127.0.0.1:${INTERNAL_PORT}`);
+server.listen(INTERNAL_PORT, "0.0.0.0", () => {
+  console.log(`Internal send API listening on 0.0.0.0:${INTERNAL_PORT}`);
 });
 
 bot.api

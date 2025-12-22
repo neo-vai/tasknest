@@ -3,7 +3,7 @@ import type { DispatchEvent } from "./types";
 import { prisma } from "@/lib/prisma";
 
 const INTERNAL_HOST =
-  process.env.TELEGRAM_BOT_INTERNAL_HOST || "http://127.0.0.1";
+  process.env.TELEGRAM_BOT_INTERNAL_HOST || "http://bot";
 const INTERNAL_PORT =
   process.env.TELEGRAM_BOT_INTERNAL_PORT || "4000";
 const SECRET = process.env.TELEGRAM_LINK_SECRET || "";
