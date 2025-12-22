@@ -83,6 +83,7 @@ enum NotificationType {
   TASK_COMPLETED
   TASK_REOPENED
   TASK_DELETED
+  PROJECT_DELETED
 }
 
 model Notification {

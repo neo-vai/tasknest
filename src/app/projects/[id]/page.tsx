@@ -11,9 +11,23 @@ import { TaskStatusActions } from "@/components/TaskStatusActions";
 import { AddMemberForm } from "@/components/AddMemberForm";
 import { MemberList } from "@/components/MemberList";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { dispatch } from "@/lib/notifications/NotificationDispatcher";
+import { broadcast } from "@/lib/sse-manager";
+import {
   RiArrowLeftLine,
   RiTaskLine,
   RiUser3Line,
+  RiDeleteBinLine,
 } from "@remixicon/react";
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
@@ -71,12 +85,21 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     <DashboardShell>
       <div className="mx-auto max-w-6xl space-y-8">
         <PageHeader title={project.name} description={project.description || undefined}>
-          <Link href="/projects">
-            <Button variant="ghost" size="sm" className="gap-1.5">
-              <RiArrowLeftLine className="h-4 w-4" />
-              Projects
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/projects">
+              <Button variant="ghost" size="sm" className="gap-1.5">
+                <RiArrowLeftLine className="h-4 w-4" />
+                Projects
+              </Button>
+            </Link>
+            {isOwner && (
+              <DeleteProjectButton
+                projectId={project.id}
+                projectName={project.name}
+                memberUserIds={project.members.map((m) => m.userId).filter((id) => id !== session.user.id)}
+              />
+            )}
+          </div>
         </PageHeader>
 
         <div className="grid gap-8 lg:grid-cols-3">
@@ -187,5 +210,81 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
     </DashboardShell>
+  );
+}
+
+function DeleteProjectButton({
+  projectId,
+  projectName,
+  memberUserIds,
+}: {
+  projectId: string;
+  projectName: string;
+  memberUserIds: string[];
+}) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-destructive hover:text-destructive"
+        >
+          <RiDeleteBinLine className="h-4 w-4" />
+          Delete Project
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete project</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete the project &quot;{projectName}&quot;? All tasks and data will be permanently removed.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <form
+            action={async () => {
+              "use server";
+              const session = await auth();
+              if (!session?.user?.id) {
+                return;
+              }
+
+              const project = await prisma.project.findUnique({
+                where: { id: projectId },
+                select: { ownerId: true, name: true },
+              });
+
+              if (!project || project.ownerId !== session.user.id) {
+                return;
+              }
+
+              await prisma.project.delete({ where: { id: projectId } });
+
+              if (memberUserIds.length > 0) {
+                await dispatch({
+                  type: "PROJECT_DELETED",
+                  userIds: memberUserIds,
+                  data: {
+                    projectId,
+                    projectName: project.name,
+                    actorId: session.user.id,
+                  },
+                });
+              }
+
+              broadcast("project-deleted", { projectId });
+
+              redirect("/projects");
+            }}
+          >
+            <AlertDialogAction type="submit" variant="destructive">
+              Delete
+            </AlertDialogAction>
+          </form>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

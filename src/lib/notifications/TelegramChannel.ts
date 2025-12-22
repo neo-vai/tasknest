@@ -34,6 +34,7 @@ async function sendTelegramMessage(chatId: string, text: string) {
 
 function getTelegramMessage(type: string, data: Record<string, unknown>): string {
   const taskTitle = data.taskTitle ? `"${String(data.taskTitle)}"` : "a task";
+  const projectName = data.projectName ? `"${String(data.projectName)}"` : "a project";
   switch (type) {
     case "ADDED_TO_PROJECT":
       return "You have been added to a project.";
@@ -51,6 +52,8 @@ function getTelegramMessage(type: string, data: Record<string, unknown>): string
       return `${taskTitle} has been reopened.`;
     case "TASK_DELETED":
       return `${taskTitle} has been deleted.`;
+    case "PROJECT_DELETED":
+      return `${projectName} has been deleted.`;
     default:
       return "You have a new notification.";
   }

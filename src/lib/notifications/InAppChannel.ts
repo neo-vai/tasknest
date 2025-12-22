@@ -51,6 +51,8 @@ function getTitle(type: string, data: Record<string, unknown>) {
       return "Task reopened";
     case "TASK_DELETED":
       return "Task deleted";
+    case "PROJECT_DELETED":
+      return "Project deleted";
     default:
       return "Notification";
   }
@@ -58,6 +60,7 @@ function getTitle(type: string, data: Record<string, unknown>) {
 
 function getMessage(type: string, data: Record<string, unknown>) {
   const taskTitle = data.taskTitle ? `"${data.taskTitle}"` : "a task";
+  const projectName = data.projectName ? `"${data.projectName}"` : "a project";
   switch (type) {
     case "ADDED_TO_PROJECT":
       return "You have been added to the project.";
@@ -75,6 +78,8 @@ function getMessage(type: string, data: Record<string, unknown>) {
       return `${taskTitle} has been reopened.`;
     case "TASK_DELETED":
       return `${taskTitle} has been deleted.`;
+    case "PROJECT_DELETED":
+      return `${projectName} has been deleted.`;
     default:
       return "You have a new notification.";
   }

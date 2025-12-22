@@ -11,6 +11,7 @@ const SSE_EVENTS = [
   "member-updated",
   "member-removed",
   "notification",
+  "project-deleted",
 ] as const;
 
 export function useRealTime() {
@@ -30,6 +31,7 @@ export function useRealTime() {
 
     const handler = (event: MessageEvent) => {
       try {
+        const data = JSON.parse(event.data);
         switch (event.type) {
           case "task-updated":
           case "task-created":
@@ -43,6 +45,12 @@ export function useRealTime() {
             break;
           case "notification":
             queryClient.invalidateQueries({ queryKey: ["notifications"], exact: false });
+            break;
+          case "project-deleted":
+            queryClient.invalidateQueries({ queryKey: ["projects"] });
+            if (data.projectId) {
+              queryClient.invalidateQueries({ queryKey: ["project", data.projectId] });
+            }
             break;
         }
       } catch {

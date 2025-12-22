@@ -6,6 +6,7 @@ export interface NotificationData {
   actorId?: string;
   role?: string;
   taskTitle?: string;
+  projectName?: string;
 }
 
 export interface DispatchEvent {
