@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
+import { useSession, signIn } from "next-auth/react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,16 +27,40 @@ export default function Register() {
     e.preventDefault()
     setLoading(true)
     setError("")
-    const res = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    })
-    setLoading(false)
-    if (res.ok) router.push("/login")
-    else {
-      const data = await res.json()
-      setError(data.error || "Registration failed")
+
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error || "Registration failed")
+        setLoading(false)
+        return
+      }
+
+      const signInRes = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (signInRes?.ok && !signInRes.error) {
+        router.push("/dashboard")
+      } else {
+        setError(
+          signInRes?.error === "CredentialsSignin"
+            ? "Account created but automatic sign-in failed. Please sign in manually."
+            : signInRes?.error || "Account created but sign-in failed, please try logging in."
+        )
+      }
+    } catch {
+      setError("Network error. Please check your connection and try again.")
+    } finally {
+      setLoading(false)
     }
   }
 
