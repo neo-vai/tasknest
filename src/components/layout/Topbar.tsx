@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { RiSearchLine, RiMessage2Line } from "@remixicon/react";
 import { SettingsMenu } from "@/components/SettingsMenu";
 import { ThemeSubMenu } from "@/components/ThemeSubMenu";
 import {
@@ -12,6 +10,8 @@ import {
 import { SignOutMenuItem } from "@/components/SignOutMenuItem";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { TelegramLinkDialog } from "@/components/TelegramLinkDialog";
+import { SearchBar } from "@/components/SearchBar";
+import { RiMessage2Line } from "@remixicon/react";
 
 export function Topbar() {
   const [telegramOpen, setTelegramOpen] = useState(false);
@@ -20,10 +20,7 @@ export function Topbar() {
     <header className="flex h-14 items-center gap-4 border-b border-border bg-card px-6">
       <div className="flex-1" />
 
-      <div className="relative w-64">
-        <RiSearchLine className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search..." className="h-8 pl-8 text-xs" />
-      </div>
+      <SearchBar />
 
       <NotificationsBell />
 
