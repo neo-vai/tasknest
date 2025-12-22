@@ -88,7 +88,7 @@ export default function Register() {
                   required
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 mb-6">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
