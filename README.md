@@ -53,11 +53,11 @@ Built with modern web technologies, real-time updates, and Telegram notification
 
 | Dashboard | Project View |
 |:---------:|:------------:|
-| ![Dashboard](https://placehold.co/600x400?text=Dashboard) | ![Project](https://placehold.co/600x400?text=Project+View) |
+| ![Dashboard](./screenshots/dashboard.png)| ![Project](./screenshots/project.png) |
 
-| Notifications | Telegram Link |
+| Starter Page | Telegram Link |
 |:------------:|:-------------:|
-| ![Notifications](https://placehold.co/600x400?text=Notifications) | ![Telegram](https://placehold.co/600x400?text=Telegram+Link) |
+| ![starterpage](./screenshots/starterpage.png) | ![Telegram](./screenshots/telegram.png) |
 
 ---
 
